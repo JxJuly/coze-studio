@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	"io"
 	"math/rand"
 	"net/url"
@@ -175,6 +176,10 @@ func (m *minioClient) PutObjectWithReader(ctx context.Context, objectKey string,
 		minioOpts.UserTags = option.Tagging
 	}
 
+	if option.Metadata != nil {
+		minioOpts.UserMetadata = option.Metadata
+	}
+
 	_, err := m.client.PutObject(ctx, m.bucketName, objectKey,
 		content, option.ObjectSize, minioOpts)
 	if err != nil {
@@ -277,4 +282,12 @@ func (m *minioClient) ListAllObjects(ctx context.Context, prefix string, withTag
 	}
 
 	return files, nil
+}
+
+func (m *minioClient) GetObjectTagging(ctx context.Context, objectKey string) (map[string]string, error) {
+	response, err := m.client.GetObjectTagging(ctx, m.bucketName, objectKey, minio.GetObjectTaggingOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("GetObjectTagging failed: %v", err)
+	}
+	return response.ToMap(), nil
 }

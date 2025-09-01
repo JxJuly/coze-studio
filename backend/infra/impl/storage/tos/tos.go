@@ -20,11 +20,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/coze-dev/coze-studio/backend/pkg/lang/slices"
 	"github.com/volcengine/ve-tos-golang-sdk/v2/tos"
 	"github.com/volcengine/ve-tos-golang-sdk/v2/tos/enum"
 
@@ -184,6 +186,10 @@ func (t *tosClient) PutObjectWithReader(ctx context.Context, objectKey string, c
 
 	if len(option.Tagging) > 0 {
 		input.Tagging = goutil.MapToQuery(option.Tagging)
+	}
+
+	if option.Metadata != nil {
+		input.Meta = option.Metadata
 	}
 
 	_, err := client.PutObjectV2(ctx, input)
@@ -371,4 +377,18 @@ func tagsToMap(tags []tos.Tag) map[string]string {
 	}
 
 	return m
+}
+
+func (t *tosClient) GetObjectTagging(ctx context.Context, objectKey string) (map[string]string, error) {
+	response, err := t.client.GetObjectTagging(ctx, &tos.GetObjectTaggingInput{
+		Bucket: t.bucketName,
+		Key:    objectKey,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return slices.ToMap(response.TagSet.Tags, func(e tos.Tag) (string, string) {
+		return e.Key, e.Value
+	}), nil
 }

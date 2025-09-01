@@ -39,6 +39,7 @@ type PutOption struct {
 	ContentLanguage    *string
 	Expires            *time.Time
 	Tagging            map[string]string
+	Metadata           map[string]string
 	ObjectSize         int64
 }
 
@@ -88,5 +89,11 @@ func WithContentLanguage(v string) PutOptFn {
 func WithExpires(v time.Time) PutOptFn {
 	return func(o *PutOption) {
 		o.Expires = &v
+	}
+}
+
+func WithMetadata(meta map[string]string) PutOptFn {
+	return func(o *PutOption) {
+		o.Metadata = meta
 	}
 }
